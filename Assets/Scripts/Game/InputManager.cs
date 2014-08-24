@@ -6,6 +6,8 @@ public class InputManager : Singleton<InputManager> {
 	const float dragMoveFactor = 1;
 	const float borderMoveSize = 16;
 
+	GameObject lastHovered;
+	IHoverHandler[] hoveredObjects;
 	ISelectionHandler[] selectedObjects;
 	public bool selectionEnabled = true;
 
@@ -44,14 +46,42 @@ public class InputManager : Singleton<InputManager> {
 		#endregion
 
 		#region Scrolling
-		Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize - Input.GetAxis("Mouse ScrollWheel"), 1f, 12f);
+		Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize - Input.GetAxis("Mouse ScrollWheel"), 1f, 25f);
 		#endregion
+
+		var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+
+		if (hit.collider != null && hit.collider.gameObject != lastHovered)
+		{
+			var handlers = hit.collider.gameObject.GetInterfaceComponents<IHoverHandler>();
+			if (handlers != null)
+			{
+				if (this.hoveredObjects != null)
+					foreach (var obj in this.hoveredObjects)
+						obj.OnHoverEnd();
+				
+				this.hoveredObjects = handlers;
+				
+				if (this.hoveredObjects != null)
+					foreach (var obj in this.hoveredObjects)
+						obj.OnHover();
+
+				lastHovered = hit.collider.gameObject;
+			}
+		}
+
+		if (hit.collider == null)
+		{
+			if (this.hoveredObjects != null)
+				foreach (var obj in this.hoveredObjects)
+					obj.OnHoverEnd();
+			this.hoveredObjects = null;
+			this.lastHovered = null;
+		}
 
 		if (selectionEnabled)
 			if (Input.GetMouseButtonDown(0))
 			{
-				var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-
 				if (hit.collider != null)
 				{
 					var handlers = hit.collider.gameObject.GetInterfaceComponents<ISelectionHandler>();

@@ -79,8 +79,10 @@ public class TradeRouteEditor : MonoBehaviour
 	void OnGUI()
 	{
 		GUI.Box (new Rect(guiX, guiY, guiWidth, guiHeight), "Edit trade route");
-		if (GUI.Button(new Rect(guiX + guiPadding, guiY + guiHeight - guiPadding - 20, guiInsideWidth, 20), "Done"))
-			End();
+
+		if (route.nodes.Count > 0)
+			if (GUI.Button(new Rect(guiX + guiPadding, guiY + guiHeight - guiPadding - 20, guiInsideWidth, 20), "Done"))
+				End();
 
 		this.selectedSupply = GUI.SelectionGrid(new Rect(guiX + guiPadding, guiY + 24, guiInsideWidth, 32), this.selectedSupply, this.supplies.Select(supply => this.commodityTextures[supply.commodity.ToString()]).ToArray(), 4);
 

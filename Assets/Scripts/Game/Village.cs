@@ -5,6 +5,8 @@ public class Village : MonoBehaviourBase {
 	public int size;
 	public Storage[] storage;
 
+	public GameObject loading;
+
 	public int maxStorage
 	{
 		get { return 3 * this.size; }
@@ -20,6 +22,21 @@ public class Village : MonoBehaviourBase {
 				commodity = (Commodity)commodities.GetValue(i),
 				amount = 0
 			};
+
+		var supplies = gameObject.GetComponents<Supply>();
+		if (supplies == null || supplies.Length == 0)
+			return;
+
+		for (int i = 0; i < supplies.Length; i++)
+		{
+			var obj = new GameObject();
+
+			var sprite = obj.AddComponent<SpriteRenderer>();
+			sprite.sprite = (Sprite)Resources.Load("Commodities/" + supplies[i].commodity.ToString().ToLower(), typeof(Sprite));
+
+			obj.transform.position = transform.position - new Vector3(sprite.bounds.size.x * (i - (supplies.Length - 1) * .5f), -.5f, .1f);
+			obj.transform.parent = transform;
+		}
 	}
 	
 	// Update is called once per frame
@@ -31,11 +48,41 @@ public class Village : MonoBehaviourBase {
 		}
 	}
 
+	public bool RequestLoadingSpot(GameObject vehicle)
+	{
+		if (loading) return false;
+
+		this.loading = vehicle;
+		return true;
+	}
+
+	public void ReleaseLoadingSpot(GameObject vehicle)
+	{
+		if (loading != vehicle) throw new Exception();
+
+		this.loading = null;
+	}
+
 	public void PushCommodity(Commodity commodity, float amount)
 	{
 		var s = this.FindStorage(commodity);
 
 		s.amount = Math.Min (this.maxStorage, s.amount + amount);
+	}
+
+	public float GetPriceFor(Commodity commodity, float amount)
+	{
+		var s = this.FindStorage(commodity);
+		return amount * .5f * (pricePerUnitAt(s.amount) + pricePerUnitAt(s.amount + amount));
+	}
+
+	private float pricePerUnitAt(float amount)
+	{
+		float ratio = amount / maxStorage;
+
+		return CurrencyManager.Instance.fullCommodityPrice * (ratio < .5
+			? 1 - 6 * ratio * ratio * ratio * ratio
+			: 2 * (ratio - 1) * (ratio - 1));
 	}
 
 	public Storage FindStorage(Commodity commodity)

@@ -15,7 +15,7 @@ public class Supply : MonoBehaviourBase {
 	public int amount;
 	public float storage;
 
-	private int maxStorage { get { return this.amount * 3; } }
+	public int maxStorage { get { return this.amount * 3; } }
 
 	// Use this for initialization
 	void Start () {
