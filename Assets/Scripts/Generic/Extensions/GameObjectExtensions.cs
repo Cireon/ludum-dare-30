@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Linq;
 using System.Collections;
 
 public static class GameObjectExtensions
@@ -14,5 +15,15 @@ public static class GameObjectExtensions
 		}
 		
 		return component;
+	}
+
+	public static I GetInterfaceComponent<I>(this GameObject obj) where I : class
+	{
+		return obj.GetComponent(typeof(I)) as I;
+	}
+
+	public static I[] GetInterfaceComponents<I>(this GameObject obj) where I : class
+	{
+		return obj.GetComponents(typeof(I)).Select (c => c as I).ToArray();
 	}
 }
